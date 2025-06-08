@@ -5,5 +5,5 @@ class ExpenseCategory < ApplicationRecord
   has_many :transactions, dependent: :destroy
 
   validates :name, presence: true,
-                 uniqueness: { scope: :budget_id, case_sensitive: false }
+                   uniqueness: { scope: :budget_id, case_sensitive: false }
 end

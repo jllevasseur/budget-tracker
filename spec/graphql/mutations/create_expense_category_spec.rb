@@ -1,7 +1,7 @@
 # typed: false
 # frozen_string_literal: true
 
-require "rails_helper"
+require 'rails_helper'
 
 RSpec.describe Mutations::CreateExpenseCategory do
   include GraphqlSpecHelper
@@ -24,36 +24,35 @@ RSpec.describe Mutations::CreateExpenseCategory do
 
   let(:query_string) do
     <<~GRAPHQL
-    mutation createExpenseCategory($input: CreateExpenseCategoryInput!) {
-      createExpenseCategory(input: $input) {
-        expenseCategory {
-          id
-          name
-          estimatedMonthlyExpense
-          budgetId
+      mutation createExpenseCategory($input: CreateExpenseCategoryInput!) {
+        createExpenseCategory(input: $input) {
+          expenseCategory {
+            id
+            name
+            estimatedMonthlyExpense
+            budgetId
+          }
+          errors
         }
-        errors
       }
-    }
     GRAPHQL
   end
 
   def category_data(result)
-      result[:data][:createExpenseCategory][:expenseCategory]
+    result[:data][:createExpenseCategory][:expenseCategory]
   end
 
   def errors_data(result)
     result[:data][:createExpenseCategory][:errors]
   end
 
-  context "Given a user" do
-
-    it "should create the expense category with no errors" do
+  context 'Given a user' do
+    it 'creates the expense category with no errors' do
       result = nil
       expect do
         result = subject
       end.to change(Budget, :count).by(0)
-      .and change(ExpenseCategory, :count).by(1)
+                                   .and change(ExpenseCategory, :count).by(1)
 
       category = category_data(result)
       errors = errors_data(result)
@@ -71,61 +70,57 @@ RSpec.describe Mutations::CreateExpenseCategory do
     end
   end
 
-
-  context "Errors" do
-    context "Given another user" do
+  context 'Errors' do
+    context 'Given another user' do
       let(:context) { { current_user: create(:user) } }
 
-      it "should not create the expense category with error" do
+      it 'does not create the expense category with error' do
         result = nil
         expect do
           result = subject
-        end.to change(ExpenseCategory, :count).by(0)
+        end.not_to change(ExpenseCategory, :count)
 
         expense_category = category_data(result)
         errors = errors_data(result)
 
         expect(expense_category).to eq(nil)
-        expect(errors).to eq(["Budget not found"])
-
+        expect(errors).to eq(['Budget not found'])
       end
     end
-    context "Given an invalid budget" do
-      before { variables[:input][:params][:budgetId] = "INVALID_ID" }
-      it "should not create the expense category with error" do
+    context 'Given an invalid budget' do
+      before { variables[:input][:params][:budgetId] = 'INVALID_ID' }
+      it 'does not create the expense category with error' do
         result = nil
         expect do
           result = subject
-        end.to change(ExpenseCategory, :count).by(0)
+        end.not_to change(ExpenseCategory, :count)
 
         expense_category = category_data(result)
         errors = errors_data(result)
 
         expect(expense_category).to eq(nil)
-        expect(errors).to eq(["Budget not found"])
-
+        expect(errors).to eq(['Budget not found'])
       end
     end
-    context "Given a duplicate category name" do
-      let!(:expsense_category) { create(:expense_category, name: 'House', budget: budget)}
+    context 'Given a duplicate category name' do
+      let!(:expsense_category) { create(:expense_category, name: 'House', budget: budget) }
 
-      it "should not create the expense category with error" do
+      it 'does not create the expense category with error' do
         result = nil
         expect do
           result = subject
-        end.to change(ExpenseCategory, :count).by(0)
+        end.not_to change(ExpenseCategory, :count)
 
         expense_category = category_data(result)
         errors = errors_data(result)
 
         expect(expense_category).to eq(nil)
-        expect(errors).to eq(["Expense category already exists for this budget"])
-
+        expect(errors).to eq(['Expense category already exists for this budget'])
       end
     end
-    context "Given no user is logged in" do
+    context 'Given no user is logged in' do
       let(:context) { { current_user: nil } }
-      it_behaves_like "requires authentication"
+      it_behaves_like 'requires authentication'
     end
   end
 end

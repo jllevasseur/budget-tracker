@@ -6,6 +6,5 @@ module Types
     include GraphQL::Types::Relay::HasNodesField
 
     field :budget_overview, resolver: Queries::BudgetOverview
-
   end
 end

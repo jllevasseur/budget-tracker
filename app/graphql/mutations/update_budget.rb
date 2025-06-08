@@ -9,18 +9,20 @@ module Mutations
     field :errors, [String], null: false
 
     def resolve(id:, params:)
-      user = current_user
-
-      budget = user.budgets.find_by(id: id)
-      return { success: false, errors: ["Budget not found"] } unless budget
+      budget = current_user.budgets.find_by(id: id)
+      return failure_response('Budget not found') unless budget
 
       attributes = params.to_h
 
-      if budget.update(attributes)
-        { budget: budget, errors: [] }
-      else
-        { budget: nil, errors: budget.errors.full_messages }
-      end
+      return { budget: budget, errors: [] } if budget.update(attributes)
+
+      failure_response(budget.errors.full_messages)
+    end
+
+    private
+
+    def failure_response(errors)
+      { budget: nil, errors: Array(errors) }
     end
   end
 end

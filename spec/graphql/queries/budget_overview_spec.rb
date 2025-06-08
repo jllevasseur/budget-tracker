@@ -1,7 +1,7 @@
 # typed: false
 # frozen_string_literal: true
 
-require "rails_helper"
+require 'rails_helper'
 
 RSpec.describe Queries::BudgetOverview do
   include GraphqlSpecHelper
@@ -26,7 +26,7 @@ RSpec.describe Queries::BudgetOverview do
 
   let(:variables) { { id: budget.id } }
 
-   let(:query_string) do
+  let(:query_string) do
     <<~GRAPHQL
       query budgetOverview($id: ID!) {
         budgetOverview(id: $id) {
@@ -47,8 +47,8 @@ RSpec.describe Queries::BudgetOverview do
     GRAPHQL
   end
 
-  context "Given a budget with categories, expenses and income" do
-    it 'should return the correct budget overview' do
+  context 'Given a budget with categories, expenses and income' do
+    it 'returns the correct budget overview' do
       result = subject
 
       data = result[:data][:budgetOverview]
@@ -61,19 +61,19 @@ RSpec.describe Queries::BudgetOverview do
       expect(data[:incomeByMonth][0]).to eq(2000.0)
     end
   end
-  context "Errors" do
-    context "Given no user is logged in" do
+  context 'Errors' do
+    context 'Given no user is logged in' do
       let(:context) { { current_user: nil } }
-      it_behaves_like "requires authentication"
+      it_behaves_like 'requires authentication'
     end
-    context "When accessing a budget not owned by the user" do
-      let(:other_user) { create(:user) }
-      let(:context) { { current_user: create(:user) } } # not the same as other_user
-      let!(:invalid_budget) { create(:budget, :with_categories, user: other_user) }
+    context 'When accessing a budget not owned by the user' do
+      let(:unauthorized) { create(:user) }
+      let(:context) { { current_user: create(:user) } } # not the same as unauthorized
+      let!(:invalid_budget) { create(:budget, :with_categories, user: unauthorized) }
 
       before { variables[:id] = invalid_budget.id }
 
-      it_behaves_like "requires authentication"
+      it_behaves_like 'requires authentication'
     end
   end
 end

@@ -2,8 +2,8 @@ class Transaction < ApplicationRecord
   belongs_to :expense_category
 
   enum transaction_type: {
-    expense:  'expense',
-    refund:   'refund',
+    expense: 'expense',
+    refund: 'refund'
   }
 
   before_save :normalize_refund_amount
@@ -11,10 +11,10 @@ class Transaction < ApplicationRecord
   private
 
   def normalize_refund_amount
-    if refund?
-      self.amount = -amount.abs
-    else
-      self.amount = amount.abs
-    end
+    self.amount = if refund?
+                    -amount.abs
+                  else
+                    amount.abs
+                  end
   end
 end

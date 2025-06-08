@@ -9,7 +9,8 @@ module Mutations
 
     def current_user
       user = context[:current_user]
-      raise GraphQL::ExecutionError, "Unauthorized" unless user
+      raise GraphQL::ExecutionError, 'Unauthorized' unless user
+
       user
     end
   end

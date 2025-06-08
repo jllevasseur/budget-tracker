@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :expense_category do
-    name { Faker::Commerce.department }
+    sequence(:name) { |n| "#{Faker::Commerce.department} #{n}" }
     estimated_monthly_expense { 100 }
     association :budget
   end

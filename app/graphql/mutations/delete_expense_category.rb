@@ -8,18 +8,22 @@ module Mutations
     field :errors, [String], null: false
 
     def resolve(id:)
-      user = current_user
-
       expense_category = ExpenseCategory.find_by(id: id)
-      return { success: false, errors: ["Expense category not found"] } unless expense_category
+      return failure_response('Expense category not found') unless expense_category
 
-      return { success: false, errors: ["Unauthorized"] } unless expense_category.budget&.user == user
+      return failure_response('Unauthorized') unless expense_category.budget&.user == current_user
 
       if expense_category.destroy
         { success: true, errors: [] }
       else
-        { success: false, errors: expense_category.errors.full_messages }
+        failure_response(expense_category.errors.full_messages)
       end
+    end
+
+    private
+
+    def failure_response(errors)
+      { success: false, errors: Array(errors) }
     end
   end
 end

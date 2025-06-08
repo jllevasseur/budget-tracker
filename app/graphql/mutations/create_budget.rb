@@ -8,31 +8,19 @@ class Mutations::CreateBudget < Mutations::BaseMutation
 
   def resolve(params:)
     attributes = params.to_h
-    user_id = attributes[:user_id]
+    attributes[:user_id] = current_user.id
+
     year = attributes[:year]
     duplicate_from_budget_id = attributes.delete(:duplicate_from_budget_id)
 
-    authorized_user = current_user
-
-    user = User.find_by(id: user_id)
-
-    return { budget: nil, errors: ["User not found"] } unless user
-    return { budget: nil, errors: ["Unauthorized"] } unless user == authorized_user
-
-    existing_budget = Budget.find_by(user_id: user.id, year: year)
-    if existing_budget
-      return {
-        budget: nil,
-        errors: ["A budget for that year already exists for this user"]
-      }
+    if Budget.exists?(user_id: current_user.id, year: year)
+      return { budget: nil, errors: ['A budget for that year already exists for this user'] }
     end
 
     original_budget = nil
     if duplicate_from_budget_id.present?
-      original_budget = user.budgets.find_by(id: duplicate_from_budget_id)
-      unless original_budget
-        return { budget: nil, errors: ["User not authorized to duplicate this budget"] }
-      end
+      original_budget = current_user.budgets.find_by(id: duplicate_from_budget_id)
+      return { budget: nil, errors: ['User not authorized to duplicate this budget'] } unless original_budget
     end
 
     budget = nil
@@ -43,9 +31,11 @@ class Mutations::CreateBudget < Mutations::BaseMutation
 
       if budget.save
         if original_budget
-          # duplicate categories
-          original_budget.categories.each do |category|
-            budget.categories.create!(name: category.name)
+          begin
+            duplicate_categories(budget, original_budget)
+          rescue StandardError => e
+            errors << "Failed to duplicate categories: #{e.message}"
+            raise ActiveRecord::Rollback
           end
         end
       else
@@ -55,5 +45,20 @@ class Mutations::CreateBudget < Mutations::BaseMutation
     end
 
     { budget: budget, errors: errors }
+  end
+
+  private
+
+  def duplicate_categories(new_budget, original_budget)
+    categories_attrs = original_budget.categories.map do |category|
+      {
+        name: category.name,
+        budget_id: new_budget.id,
+        created_at: Time.current,
+        updated_at: Time.current
+      }
+    end
+
+    ExpenseCategory.insert_all!(categories_attrs)
   end
 end

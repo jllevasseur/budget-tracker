@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :budget do
-    name { "My Budget" }
+    name { 'My Budget' }
     year { Faker::Number.between(from: 2026, to: 2030) }
     association :user
 
