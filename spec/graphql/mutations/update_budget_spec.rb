@@ -1,7 +1,7 @@
 # typed: false
 # frozen_string_literal: true
 
-require "rails_helper"
+require 'rails_helper'
 
 RSpec.describe Mutations::UpdateBudget do
   include GraphqlSpecHelper
@@ -16,7 +16,7 @@ RSpec.describe Mutations::UpdateBudget do
         id: existing_budget.id,
         params: {
           name: '2025 new',
-          year: 2024,
+          year: 2024
         }
       }
     }
@@ -24,40 +24,40 @@ RSpec.describe Mutations::UpdateBudget do
 
   let(:query_string) do
     <<~GRAPHQL
-    mutation updateBudget($input: UpdateBudgetInput!) {
-      updateBudget(input: $input) {
-        budget {
-            id
-            name
-            year
-            user {
+      mutation updateBudget($input: UpdateBudgetInput!) {
+        updateBudget(input: $input) {
+          budget {
+              id
               name
+              year
+              user {
+                name
+              }
+              categories {
+                name
+              }
             }
-            categories {
-              name
-            }
-          }
-        errors
+          errors
+        }
       }
-    }
     GRAPHQL
   end
 
   def budget_data(result)
-      result[:data][:updateBudget][:budget]
+    result[:data][:updateBudget][:budget]
   end
 
   def errors_data(result)
     result[:data][:updateBudget][:errors]
   end
 
-  context "Given a user" do
-    it "should update the budget with no errors" do
+  context 'Given a user' do
+    it 'updates the budget with no errors' do
       result = nil
       expect do
         result = subject
       end.to change(Budget, :count).by(0)
-      .and change(ExpenseCategory, :count).by(0)
+                                   .and change(ExpenseCategory, :count).by(0)
 
       budget = budget_data(result)
       errors = errors_data(result)
@@ -67,66 +67,63 @@ RSpec.describe Mutations::UpdateBudget do
       expect(budget[:user][:name]).to eq(user.name)
       expect(budget[:categories].size).to eq(3)
       expect(errors).to be_empty
-
     end
   end
 
-  context "Errors" do
-    context "Given another user" do
+  context 'Errors' do
+    context 'Given another user' do
       let(:context) { { current_user: create(:user) } }
 
-      it "should not update the budget with error" do
+      it 'does not update the budget with error' do
         result = nil
         expect do
           result = subject
-        end.to change(Budget, :count).by(0)
+        end.not_to change(Budget, :count)
 
         budget = budget_data(result)
         errors = errors_data(result)
 
         expect(budget).to eq(nil)
-        expect(errors).to eq(["Budget not found"])
-
+        expect(errors).to eq(['Budget not found'])
       end
     end
 
-    context "Given an invalid existing budget to duplicate" do
-      before { variables[:input][:id] = "INVALID_ID" }
+    context 'Given an invalid existing budget to duplicate' do
+      before { variables[:input][:id] = 'INVALID_ID' }
 
-      it "should not update the budget with error" do
+      it 'does not update the budget with error' do
         result = nil
         expect do
           result = subject
-        end.to change(Budget, :count).by(0)
+        end.not_to change(Budget, :count)
 
         budget = budget_data(result)
         errors = errors_data(result)
 
         expect(budget).to eq(nil)
-        expect(errors).to eq(["Budget not found"])
-
+        expect(errors).to eq(['Budget not found'])
       end
     end
-    context "Given an existing budget to update not belonging to the user" do
-      let(:invalid_existing_budget) { create(:budget, :with_categories, user: create(:user)) }
-      before { variables[:input][:id] = invalid_existing_budget.id }
+    context 'Given an existing budget to update not belonging to the user' do
+      let(:unauthorized_budget) { create(:budget, :with_categories, user: create(:user)) }
+      before { variables[:input][:id] = unauthorized_budget.id }
 
-      it "should not create the budget with error" do
+      it 'does not create the budget with error' do
         result = nil
         expect do
           result = subject
-        end.to change(Budget, :count).by(0)
+        end.not_to change(Budget, :count)
 
         budget = budget_data(result)
         errors = errors_data(result)
 
         expect(budget).to eq(nil)
-        expect(errors).to eq(["Budget not found"])
+        expect(errors).to eq(['Budget not found'])
       end
     end
-    context "Given no user is logged in" do
+    context 'Given no user is logged in' do
       let(:context) { { current_user: nil } }
-      it_behaves_like "requires authentication"
+      it_behaves_like 'requires authentication'
     end
   end
 end

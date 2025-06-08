@@ -1,20 +1,22 @@
 # frozen_string_literal: true
 
 module Mutations
-  class DeleteBudget < BaseMutation
+  class DeleteIncome < BaseMutation
     argument :id, ID, required: true
 
     field :success, Boolean, null: false
     field :errors, [String], null: false
 
     def resolve(id:)
-      budget = current_user.budgets.find_by(id: id)
-      return failure_response('Budget not found') unless budget
+      income = Income.find_by(id: id)
+      return failure_response('Income not found') unless income
 
-      if budget.destroy
+      return failure_response('Unauthorized') unless income.budget&.user == current_user
+
+      if income.destroy
         { success: true, errors: [] }
       else
-        failure_response(budget.errors.full_messages)
+        failure_response(income.errors.full_messages)
       end
     end
 

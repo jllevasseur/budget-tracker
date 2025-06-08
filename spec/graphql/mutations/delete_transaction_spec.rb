@@ -3,41 +3,38 @@
 
 require 'rails_helper'
 
-RSpec.describe Mutations::DeleteExpenseCategory do
+RSpec.describe Mutations::DeleteTransaction do
   include GraphqlSpecHelper
 
   let(:user) { create(:user) }
   let(:budget) { create(:budget, :with_categories, user: user) }
-  let!(:expense_category) { create(:expense_category, budget: budget) }
+  let(:expense_category) { create(:expense_category, budget: budget) }
   let!(:transaction) { create(:transaction, expense_category: expense_category) }
   let(:context) { { current_user: user } }
 
-  let(:variables) { { input: { id: expense_category.id } } }
+  let(:variables) { { input: { id: transaction.id } } }
 
   let(:query_string) do
     <<~GRAPHQL
-      mutation deleteExpenseCategory($input: DeleteExpenseCategoryInput!) {
-        deleteExpenseCategory(input: $input) {
+      mutation deleteTransaction($input: DeleteTransactionInput!) {
+        deleteTransaction(input: $input) {
           success
           errors
         }
       }
     GRAPHQL
   end
-
-  def delete_category_response(result)
-    result[:data][:deleteExpenseCategory]
+  def delete_transaction_response(result)
+    result[:data][:deleteTransaction]
   end
-
   context 'Given a user' do
-    it 'deletes the expense category with no errors' do
+    it 'deletes the transaction with no errors' do
       result = nil
       expect do
         result = subject
       end.to change(Transaction, :count).by(-1)
-                                        .and change(ExpenseCategory, :count).by(-1)
 
-      response = delete_category_response(result)
+      response = delete_transaction_response(result)
 
       expect(response[:success]).to be true
       expect(response[:errors]).to be_empty
@@ -45,31 +42,32 @@ RSpec.describe Mutations::DeleteExpenseCategory do
   end
 
   context 'Errors' do
-    context 'Given a expense category that does not exist' do
+    context 'Given a transaction that does not exist' do
       let(:variables) { { input: { id: 'invalid-id' } } }
 
-      it 'does not delete expense category and returns an error' do
+      it 'does not delete the transaction and returns an error' do
         result = nil
         expect do
           result = subject
-        end.not_to change(ExpenseCategory, :count)
+        end.not_to change(Transaction, :count)
 
-        response = delete_category_response(result)
+        response = delete_transaction_response(result)
         expect(response[:success]).to be false
         expect(response[:errors]).to include('Expense category not found')
       end
     end
-    context 'Given a expense category that does not belong to the user' do
-      let!(:unauthorized_budget) { create(:budget, :with_categories, user: create(:user)) }
-      let(:variables) { { input: { id: unauthorized_budget.categories[0].id } } }
+    context 'Given a transaction that does not belong to the user' do
+      let(:existing_budget) { create(:budget, :with_categories, user: create(:user)) }
+      let!(:existing_transaction) { create(:transaction, expense_category: existing_budget.categories[0]) }
+      let(:variables) { { input: { id: existing_transaction.id } } }
 
-      it 'does not delete expense category and returns an errorr' do
+      it 'does not delete the transaction and returns an error' do
         result = nil
         expect do
           result = subject
-        end.not_to change(ExpenseCategory, :count)
+        end.not_to change(Transaction, :count)
 
-        response = delete_category_response(result)
+        response = delete_transaction_response(result)
         expect(response[:success]).to be false
         expect(response[:errors]).to include('Unauthorized')
       end

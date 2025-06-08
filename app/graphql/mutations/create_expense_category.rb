@@ -11,10 +11,10 @@ class Mutations::CreateExpenseCategory < Mutations::BaseMutation
     budget_id = attributes.delete(:budget_id)
 
     budget = current_user.budgets.find_by(id: budget_id)
-    return { expense_category: nil, errors: ["Budget not found"] } unless budget
+    return failure_response('Budget not found') unless budget
 
     if budget.categories.where('LOWER(name) = ?', attributes[:name].downcase).exists?
-      return { expense_category: nil, errors: ["Expense category already exists for this budget"] }
+      return failure_response('Expense category already exists for this budget')
     end
 
     expense_category = budget.categories.new(attributes)
@@ -24,5 +24,11 @@ class Mutations::CreateExpenseCategory < Mutations::BaseMutation
     else
       { expense_category: nil, errors: expense_category.errors.full_messages }
     end
+  end
+
+  private
+
+  def failure_response(message)
+    { expense_category: nil, errors: Array(message) }
   end
 end

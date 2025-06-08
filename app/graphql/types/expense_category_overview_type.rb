@@ -11,4 +11,12 @@ module Types
   def estimated_monthly_expense
     object.estimated_monthly_expense.to_f
   end
+
+  def monthly_expenses
+    object.monthly_expenses.map(&:to_f)
+  end
+
+  def year_to_date_total
+    object.year_to_date_total.to_f
+  end
 end
