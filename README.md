@@ -9,6 +9,7 @@ A simple Rails GraphQL demo app for managing budgets, expense categories, income
 - Create and manage yearly budgets
 - Track expenses and income by category and month
 - Set monthly spending limits per category (optional)
+- Budget Overview Query: Retrieve a comprehensive summary of a budget, including income, expenses by category, monthly balances, and year-to-date totals.
 
 ## Future Features
 
