@@ -67,36 +67,10 @@ RSpec.describe Mutations::UpdateExpenseCategory do
   end
 
   context 'Errors' do
-    context 'Given another user' do
-      let(:context) { { current_user: create(:user) } }
-
-      it 'does not update the expense category with error' do
-        result = subject
-
-        expense_category = category_data(result)
-        errors = errors_data(result)
-
-        expect(expense_category).to eq(nil)
-        expect(errors).to eq(['Unauthorized'])
-      end
-    end
-
     context 'Given an expense category not belonging to the user' do
-      let(:unauthorized_budget) { create(:budget, :with_categories, user: create(:user)) }
-      before { variables[:input][:id] = unauthorized_budget.categories[0].id }
-
-      it 'does not create the expense category with error' do
-        result = subject
-
-        expense_category = category_data(result)
-        errors = errors_data(result)
-
-        expect(expense_category).to eq(nil)
-        expect(errors).to eq(['Unauthorized'])
-      end
+      it_behaves_like 'requires resource ownership'
     end
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

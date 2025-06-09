@@ -60,22 +60,9 @@ RSpec.describe Mutations::DeleteExpenseCategory do
       end
     end
     context 'Given a expense category that does not belong to the user' do
-      let!(:unauthorized_budget) { create(:budget, :with_categories, user: create(:user)) }
-      let(:variables) { { input: { id: unauthorized_budget.categories[0].id } } }
-
-      it 'does not delete expense category and returns an errorr' do
-        result = nil
-        expect do
-          result = subject
-        end.not_to change(ExpenseCategory, :count)
-
-        response = delete_category_response(result)
-        expect(response[:success]).to be false
-        expect(response[:errors]).to include('Unauthorized')
-      end
+      it_behaves_like 'requires resource ownership'
     end
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

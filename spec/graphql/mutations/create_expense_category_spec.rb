@@ -74,7 +74,7 @@ RSpec.describe Mutations::CreateExpenseCategory do
     context 'Given another user' do
       let(:context) { { current_user: create(:user) } }
 
-      it 'does not create the expense category with error' do
+      it 'does not create the expense category and returns an error' do
         result = nil
         expect do
           result = subject
@@ -89,7 +89,7 @@ RSpec.describe Mutations::CreateExpenseCategory do
     end
     context 'Given an invalid budget' do
       before { variables[:input][:params][:budgetId] = 'INVALID_ID' }
-      it 'does not create the expense category with error' do
+      it 'does not create the expense category and returns an error' do
         result = nil
         expect do
           result = subject
@@ -105,7 +105,7 @@ RSpec.describe Mutations::CreateExpenseCategory do
     context 'Given a duplicate category name' do
       let!(:expsense_category) { create(:expense_category, name: 'House', budget: budget) }
 
-      it 'does not create the expense category with error' do
+      it 'does not create the expense category and returns an error' do
         result = nil
         expect do
           result = subject
@@ -118,8 +118,7 @@ RSpec.describe Mutations::CreateExpenseCategory do
         expect(errors).to eq(['Expense category already exists for this budget'])
       end
     end
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

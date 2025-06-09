@@ -9,14 +9,13 @@ module Mutations
     field :errors, [String], null: false
 
     def resolve(id:, params:)
-      user = current_user
       attributes = params.to_h
 
       expense_category = ExpenseCategory.find_by(id: id)
       return failure_response(['Expense category not found']) unless expense_category
 
       budget = expense_category.budget
-      return failure_response(['Unauthorized']) unless budget&.user == user
+      authorize_owner!(budget)
 
       if budget.categories
                .where('LOWER(name) = ?', attributes[:name].downcase)

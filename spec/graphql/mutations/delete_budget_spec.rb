@@ -55,8 +55,7 @@ RSpec.describe Mutations::DeleteBudget do
         expect(response[:errors]).to include('Budget not found')
       end
     end
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

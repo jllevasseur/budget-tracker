@@ -44,10 +44,10 @@ RSpec.describe Mutations::DeleteIncome do
   end
 
   context 'Errors' do
-    context 'Given a expense category that does not exist' do
+    context 'Given a income that does not exist' do
       let(:variables) { { input: { id: 'invalid-id' } } }
 
-      it 'does not delete expense category and returns an error' do
+      it 'does not delete income and returns an error' do
         result = nil
         expect do
           result = subject
@@ -59,23 +59,9 @@ RSpec.describe Mutations::DeleteIncome do
       end
     end
     context 'Given an income that does not belong to the user' do
-      let(:unauthorized_budget) { create(:budget, user: create(:user)) }
-      let!(:unauthorized_income) { create(:income, budget: unauthorized_budget) }
-      let(:variables) { { input: { id: unauthorized_income.id } } }
-
-      it 'does not delete the income and returns an errorr' do
-        result = nil
-        expect do
-          result = subject
-        end.not_to change(Income, :count)
-
-        response = delete_income_response(result)
-        expect(response[:success]).to be false
-        expect(response[:errors]).to include('Unauthorized')
-      end
+      it_behaves_like 'requires resource ownership'
     end
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

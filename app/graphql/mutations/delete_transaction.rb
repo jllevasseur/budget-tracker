@@ -11,7 +11,7 @@ module Mutations
       transaction = Transaction.find_by(id: id)
       return failure_response('Expense category not found') unless transaction
 
-      return failure_response('Unauthorized') unless transaction.expense_category.budget&.user == current_user
+      authorize_owner!(transaction.expense_category.budget)
 
       if transaction.destroy
         { success: true, errors: [] }

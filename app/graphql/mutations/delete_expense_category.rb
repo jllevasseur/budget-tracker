@@ -11,7 +11,7 @@ module Mutations
       expense_category = ExpenseCategory.find_by(id: id)
       return failure_response('Expense category not found') unless expense_category
 
-      return failure_response('Unauthorized') unless expense_category.budget&.user == current_user
+      authorize_owner!(expense_category.budget)
 
       if expense_category.destroy
         { success: true, errors: [] }

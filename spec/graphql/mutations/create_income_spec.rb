@@ -76,7 +76,7 @@ RSpec.describe Mutations::CreateIncome do
     context 'Given another user' do
       let(:context) { { current_user: create(:user) } }
 
-      it 'does not create the income with error' do
+      it 'does not create the income and returns an error' do
         result = nil
         expect do
           result = subject
@@ -91,7 +91,7 @@ RSpec.describe Mutations::CreateIncome do
     end
     context 'Given an invalid budget' do
       before { variables[:input][:params][:budgetId] = 'INVALID_ID' }
-      it 'does not create the income with error' do
+      it 'does not create the income and returns an error' do
         result = nil
         expect do
           result = subject
@@ -107,7 +107,7 @@ RSpec.describe Mutations::CreateIncome do
 
     context 'Given a transaction date outside the budget year' do
       before { variables[:input][:params][:transactionDate] = Date.today - 1.year - 2.days }
-      it 'does not create the income with error' do
+      it 'does not create the income and returns an error' do
         result = nil
         expect do
           result = subject
@@ -121,8 +121,7 @@ RSpec.describe Mutations::CreateIncome do
       end
     end
 
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

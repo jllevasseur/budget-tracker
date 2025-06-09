@@ -62,18 +62,23 @@ RSpec.describe Queries::BudgetOverview do
     end
   end
   context 'Errors' do
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
     context 'When accessing a budget not owned by the user' do
-      let(:unauthorized) { create(:user) }
-      let(:context) { { current_user: create(:user) } } # not the same as unauthorized
-      let!(:invalid_budget) { create(:budget, :with_categories, user: unauthorized) }
+      let(:context) { create(:user) }
+      it 'returns an Unauthorized error when user is not the owner' do
+        result = execute_graphql_query(
+          query_string: query_string,
+          context: { current_user: create(:user) },
+          variables: defined?(variables) ? variables : {},
+          expect_errors: true
+        )
 
-      before { variables[:id] = invalid_budget.id }
-
-      it_behaves_like 'requires authentication'
+        expect(result).to include(
+          errors: [hash_including(message: 'Budget not found or unauthorized')]
+        )
+      end
     end
   end
 end

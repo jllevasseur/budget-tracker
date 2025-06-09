@@ -103,7 +103,7 @@ RSpec.describe Mutations::CreateBudget do
   context 'Errors' do
     context 'Given an invalid existing budget to duplicate' do
       before { variables[:input][:params][:duplicateFromBudgetId] = 'INVALID_ID' }
-      it 'does not create the budget with error' do
+      it 'does not create the budget and returns an error' do
         result = nil
         expect do
           result = subject
@@ -120,7 +120,7 @@ RSpec.describe Mutations::CreateBudget do
       let(:invalid_existing_budget) { create(:budget, :with_categories, user: create(:user)) }
       before { variables[:input][:params][:duplicateFromBudgetId] = invalid_existing_budget.id }
 
-      it 'does not create the budget with error' do
+      it 'does not create the budget and returns an error' do
         result = nil
         expect do
           result = subject
@@ -133,8 +133,7 @@ RSpec.describe Mutations::CreateBudget do
         expect(errors).to eq(['User not authorized to duplicate this budget'])
       end
     end
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

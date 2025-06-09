@@ -9,19 +9,14 @@ module Mutations
     field :errors, [String], null: false
 
     def resolve(id:, params:)
-      user = current_user
       attributes = params.to_h
 
       transaction = Transaction.find_by(id: id)
-
-      unless transaction&.expense_category&.budget&.user == user
-        return failure_response(['Transaction not found or unauthorised'])
-      end
+      authorize_owner!(transaction&.expense_category&.budget)
 
       if (new_id = attributes[:expense_category_id]) && new_id != transaction.expense_category_id
         new_category = ExpenseCategory.find_by(id: new_id)
         return failure_response(['Expense category not found']) unless new_category
-        return failure_response(['Unauthorized']) unless new_category.budget.user == user
       end
 
       transaction_date = attributes[:transaction_date]

@@ -71,10 +71,10 @@ RSpec.describe Mutations::UpdateBudget do
   end
 
   context 'Errors' do
-    context 'Given another user' do
+    context 'Given an existing budget to update not belonging to the user' do
       let(:context) { { current_user: create(:user) } }
 
-      it 'does not update the budget with error' do
+      it 'does not update the budget and returns an error' do
         result = nil
         expect do
           result = subject
@@ -91,7 +91,7 @@ RSpec.describe Mutations::UpdateBudget do
     context 'Given an invalid existing budget to duplicate' do
       before { variables[:input][:id] = 'INVALID_ID' }
 
-      it 'does not update the budget with error' do
+      it 'does not update the budget and returns an error' do
         result = nil
         expect do
           result = subject
@@ -104,25 +104,8 @@ RSpec.describe Mutations::UpdateBudget do
         expect(errors).to eq(['Budget not found'])
       end
     end
-    context 'Given an existing budget to update not belonging to the user' do
-      let(:unauthorized_budget) { create(:budget, :with_categories, user: create(:user)) }
-      before { variables[:input][:id] = unauthorized_budget.id }
 
-      it 'does not create the budget with error' do
-        result = nil
-        expect do
-          result = subject
-        end.not_to change(Budget, :count)
-
-        budget = budget_data(result)
-        errors = errors_data(result)
-
-        expect(budget).to eq(nil)
-        expect(errors).to eq(['Budget not found'])
-      end
-    end
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end
