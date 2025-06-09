@@ -57,23 +57,9 @@ RSpec.describe Mutations::DeleteTransaction do
       end
     end
     context 'Given a transaction that does not belong to the user' do
-      let(:existing_budget) { create(:budget, :with_categories, user: create(:user)) }
-      let!(:existing_transaction) { create(:transaction, expense_category: existing_budget.categories[0]) }
-      let(:variables) { { input: { id: existing_transaction.id } } }
-
-      it 'does not delete the transaction and returns an error' do
-        result = nil
-        expect do
-          result = subject
-        end.not_to change(Transaction, :count)
-
-        response = delete_transaction_response(result)
-        expect(response[:success]).to be false
-        expect(response[:errors]).to include('Unauthorized')
-      end
+      it_behaves_like 'requires resource ownership'
     end
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

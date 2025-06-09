@@ -68,39 +68,13 @@ RSpec.describe Mutations::UpdateIncome do
   end
 
   context 'Errors' do
-    context 'Given another user' do
-      let(:context) { { current_user: create(:user) } }
-
-      it 'does not update the income with error' do
-        result = subject
-
-        income = income_data(result)
-        errors = errors_data(result)
-
-        expect(income).to eq(nil)
-        expect(errors).to eq(['Unauthorized'])
-      end
-    end
-
     context 'Given an income not belonging to the user' do
-      let(:unauthorized_budget) { create(:budget, user: create(:user)) }
-      let(:unauthorized_income) { create(:income, budget: unauthorized_budget) }
-      before { variables[:input][:id] = unauthorized_income.id }
-
-      it 'does not create the expense category with error' do
-        result = subject
-
-        income = income_data(result)
-        errors = errors_data(result)
-
-        expect(income).to eq(nil)
-        expect(errors).to eq(['Unauthorized'])
-      end
+      it_behaves_like 'requires resource ownership'
     end
 
     context 'Given a transaction date outside the budget year' do
       before { variables[:input][:params][:transactionDate] = Date.today - 1.year - 2.days }
-      it 'does not update the income with error' do
+      it 'does not update the income and returns an error' do
         result = nil
         expect do
           result = subject
@@ -114,8 +88,7 @@ RSpec.describe Mutations::UpdateIncome do
       end
     end
 
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

@@ -11,7 +11,7 @@ module Mutations
       income = Income.find_by(id: id)
       return failure_response('Income not found') unless income
 
-      return failure_response('Unauthorized') unless income.budget&.user == current_user
+      authorize_owner!(income.budget)
 
       if income.destroy
         { success: true, errors: [] }

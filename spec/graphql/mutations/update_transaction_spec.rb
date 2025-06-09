@@ -72,41 +72,13 @@ RSpec.describe Mutations::UpdateTransaction do
   end
 
   context 'Errors' do
-    context 'Given another user' do
-      let(:context) { { current_user: create(:user) } }
-
-      it 'does not update the transaction with error' do
-        result = subject
-
-        transaction = transaction_data(result)
-        errors = errors_data(result)
-
-        expect(transaction).to eq(nil)
-        expect(errors).to eq(['Transaction not found or unauthorised'])
-      end
-    end
-
     context 'Given an transaction not belonging to the user' do
-      let(:unauthorized_budget) { create(:budget, :with_categories, user: create(:user)) }
-      let(:unauthorized_expense_category) do
-        create(:expense_category, name: 'Home', estimated_monthly_expense: 2000, budget: unauthorized_budget)
-      end
-      before { variables[:input][:id] = unauthorized_expense_category.id }
-
-      it 'does not create the transaction with error' do
-        result = subject
-
-        transaction = transaction_data(result)
-        errors = errors_data(result)
-
-        expect(transaction).to eq(nil)
-        expect(errors).to eq(['Transaction not found or unauthorised'])
-      end
+      it_behaves_like 'requires resource ownership'
     end
 
     context 'Given a transaction date outside the budget year' do
       before { variables[:input][:params][:transactionDate] = Date.today - 1.year - 2.days }
-      it 'does not update the transaction with error' do
+      it 'does not update the transaction and returns an error' do
         result = nil
         expect do
           result = subject
@@ -120,8 +92,7 @@ RSpec.describe Mutations::UpdateTransaction do
       end
     end
 
-    context 'Given no user is logged in' do
-      let(:context) { { current_user: nil } }
+    context 'authorization' do
       it_behaves_like 'requires authentication'
     end
   end

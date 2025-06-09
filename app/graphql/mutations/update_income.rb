@@ -9,14 +9,13 @@ module Mutations
     field :errors, [String], null: false
 
     def resolve(id:, params:)
-      user = current_user
       attributes = params.to_h
 
       income = Income.find_by(id: id)
       return failure_response(['Income not found']) unless income
 
       budget = income.budget
-      return failure_response(['Unauthorized']) unless budget&.user == user
+      authorize_owner!(budget)
 
       transaction_date = attributes[:transaction_date]
       if transaction_date.nil? || transaction_date.year != budget.year

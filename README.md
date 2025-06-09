@@ -1,8 +1,8 @@
 # README
 
-# Budget Tracker Demo
+# Budget Tracker
 
-A simple Rails GraphQL demo app for managing budgets, expense categories, incomes, and transactions.
+A simple Rails GraphQL backend app for managing budgets, expense categories, incomes, and transactions.
 
 ## Features
 

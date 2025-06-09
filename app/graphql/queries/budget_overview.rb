@@ -12,7 +12,7 @@ module Queries
                    .includes(categories: :transactions, incomes: [])
                    .find_by(id: id)
 
-      raise GraphQL::ExecutionError, 'Budget not found or access denied' unless budget
+      raise GraphQL::ExecutionError, 'Budget not found or unauthorized' unless budget
 
       build_budget_overview(budget)
     end
